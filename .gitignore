@@ -1,0 +1,9 @@
+.vs/
+bin/
+obj/
+*.suo
+*.user
+*.Artifacts
+
+# Ignore NuGet Packages folder 
+packages/
