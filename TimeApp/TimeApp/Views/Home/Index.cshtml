@@ -2,7 +2,21 @@
     ViewData["Title"] = "Home Page";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="azure-container">
+    <div class="timezones-container" id="timezones">
+        <div class="timezone" id="timezone-template" style="display: none;">
+            <div class="timezone__time">
+                12:00
+            </div>
+            <div class="timezone__name">
+                City
+            </div>
+            <button class="timezone__diff">Diff</button>
+        </div>
+    </div>
+    <div class="diff-container" id="diff-container">
+        0 hours
+    </div>
 </div>
+
+<script src="~/js/timezones.js" asp-append-version="true"></script>

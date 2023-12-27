@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Collections.Generic;
+using System.Linq;
+using Microsoft.AspNetCore.Mvc;
 
 namespace TimeApp.Controllers
 {
@@ -28,7 +30,7 @@ namespace TimeApp.Controllers
                 new ()
                 {
                     ZoneId = "warsaw",
-                    DisplayName = "warsaw",
+                    DisplayName = "Warsaw",
                     UtcOffsetMinutes = 1 * 60,
                 },
                 new ()
@@ -48,7 +50,7 @@ namespace TimeApp.Controllers
         }
 
         [HttpPost("diff/{first}/{second}")]
-        public IActionResult Diff(string first, string second)
+        public ActionResult<int> Diff(string first, string second)
         {
             var firstTimeZone = Timezones.SingleOrDefault(z => z.ZoneId == first);
             if (firstTimeZone == null)
@@ -62,9 +64,7 @@ namespace TimeApp.Controllers
                 return BadRequest();
             }
 
-            //TODO azure functions
-
-            return null;
+            return Ok(secondTimeZone.UtcOffsetMinutes - firstTimeZone.UtcOffsetMinutes);
         }
 
 
