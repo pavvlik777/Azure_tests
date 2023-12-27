@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 
 namespace TimeApp.Controllers
@@ -50,7 +52,7 @@ namespace TimeApp.Controllers
         }
 
         [HttpPost("diff/{first}/{second}")]
-        public ActionResult<int> Diff(string first, string second)
+        public async Task<ActionResult<int>> Diff(string first, string second)
         {
             var firstTimeZone = Timezones.SingleOrDefault(z => z.ZoneId == first);
             if (firstTimeZone == null)
@@ -64,7 +66,17 @@ namespace TimeApp.Controllers
                 return BadRequest();
             }
 
-            return Ok(secondTimeZone.UtcOffsetMinutes - firstTimeZone.UtcOffsetMinutes);
+            var client = new HttpClient();
+            var request = new HttpRequestMessage(HttpMethod.Get, $"https://time-diff-test.azurewebsites.net/api/timeDiff?first={first}&second={second}");
+            var response = await client.SendAsync(request);
+            if (!response.IsSuccessStatusCode)
+            {
+                return BadRequest();
+            }
+
+            var result = await response.Content.ReadAsStringAsync();
+
+            return int.Parse(result);
         }
 
 
