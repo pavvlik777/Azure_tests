@@ -46,7 +46,7 @@ namespace TimeDiffFunction
 
 
         [FunctionName("TimeDiff")]
-        public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req)
+        public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequest req)
         {
             var first = req.Query["first"];
             var second = req.Query["second"];
