@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using TimeApp.Models;
+using TimeApp.ViewModels;
 
 namespace TimeApp.Controllers
 {

@@ -3,6 +3,8 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using TimeApp.Foundation.TimeData;
+using TimeApp.Models;
 
 namespace TimeApp.Controllers
 {
@@ -10,64 +12,112 @@ namespace TimeApp.Controllers
     [Route("api/time")]
     public sealed class TimeController : ControllerBase
     {
-        private static readonly IReadOnlyCollection<TimeData> Timezones;
+        private readonly ITimeDataRepository _timeDataRepository;
 
 
-        static TimeController()
+        public TimeController(ITimeDataRepository timeDataRepository)
         {
-            Timezones = new List<TimeData>()
-            {
-                new ()
-                {
-                    ZoneId = "minsk",
-                    DisplayName = "Minsk",
-                    UtcOffsetMinutes = 3 * 60,
-                },
-                new ()
-                {
-                    ZoneId = "new_york",
-                    DisplayName = "New York",
-                    UtcOffsetMinutes = -5 * 60,
-                },
-                new ()
-                {
-                    ZoneId = "warsaw",
-                    DisplayName = "Warsaw",
-                    UtcOffsetMinutes = 1 * 60,
-                },
-                new ()
-                {
-                    ZoneId = "novosibirsk",
-                    DisplayName = "Novosibirsk",
-                    UtcOffsetMinutes = 7 * 60,
-                },
-            };
+            _timeDataRepository = timeDataRepository;
         }
 
 
+        //static TimeController()
+        //{
+        //    Timezones = new List<TimeData>()
+        //    {
+        //        new ()
+        //        {
+        //            ZoneId = "minsk",
+        //            DisplayName = "Minsk",
+        //            UtcOffsetMinutes = 3 * 60,
+        //        },
+        //        new ()
+        //        {
+        //            ZoneId = "new_york",
+        //            DisplayName = "New York",
+        //            UtcOffsetMinutes = -5 * 60,
+        //        },
+        //        new ()
+        //        {
+        //            ZoneId = "warsaw",
+        //            DisplayName = "Warsaw",
+        //            UtcOffsetMinutes = 1 * 60,
+        //        },
+        //        new ()
+        //        {
+        //            ZoneId = "novosibirsk",
+        //            DisplayName = "Novosibirsk",
+        //            UtcOffsetMinutes = 7 * 60,
+        //        },
+        //    };
+        //}
+
+
         [HttpGet]
-        public ActionResult<IReadOnlyCollection<TimeData>> Get()
+        public async Task<ActionResult<IReadOnlyCollection<TimeData>>> Get()
         {
-            return Ok(Timezones);
+            var timezones = await _timeDataRepository.GetAllAsync();
+
+            return Ok(timezones);
+        }
+
+        [HttpPost]
+        public ActionResult<TimeData> Post([FromBody] TimeDataRequest timeData)
+        {
+            //TODO
+
+            var temp = new TimeData
+            {
+                ZoneId = "abc",
+                DisplayName = timeData.DisplayName,
+                UtcOffsetMinutes = timeData.UtcOffsetMinutes,
+            };
+
+            return Ok(temp);
+        }
+
+        [HttpPut("{id}")]
+        public ActionResult<TimeData> Put(string id, [FromBody] TimeDataRequest timeData)
+        {
+            //TODO
+
+            return Ok();
+        }
+
+        [HttpDelete("{id}")]
+        public ActionResult<TimeData> Delete(string id)
+        {
+            //TODO
+
+            return Ok();
+        }
+
+        [HttpPost("{id}/ttl")]
+        public IActionResult SetTtl(string id)
+        {
+            //TODO
+
+            return Ok();
         }
 
         [HttpPost("diff/{first}/{second}")]
         public async Task<ActionResult<int>> Diff(string first, string second)
         {
-            var firstTimeZone = Timezones.SingleOrDefault(z => z.ZoneId == first);
+            var timezones = await _timeDataRepository.GetAllAsync();
+            var firstTimeZone = timezones.SingleOrDefault(z => z.ZoneId == first);
             if (firstTimeZone == null)
             {
                 return BadRequest();
             }
 
-            var secondTimeZone = Timezones.SingleOrDefault(z => z.ZoneId == second);
+            var secondTimeZone = timezones.SingleOrDefault(z => z.ZoneId == second);
             if (secondTimeZone == null)
             {
                 return BadRequest();
             }
 
             var client = new HttpClient();
-            var request = new HttpRequestMessage(HttpMethod.Get, $"https://time-diff-test.azurewebsites.net/api/timeDiff?first={first}&second={second}");
+            var request = new HttpRequestMessage(HttpMethod.Get, $"https://time-diff-test.azurewebsites.net/api/timeDiff?first={firstTimeZone.UtcOffsetMinutes}&second={secondTimeZone.UtcOffsetMinutes}");
             var response = await client.SendAsync(request);
             if (!response.IsSuccessStatusCode)
             {
@@ -81,10 +131,8 @@ namespace TimeApp.Controllers
 
 
 
-        public sealed class TimeData
+        public sealed class TimeDataRequest
         {
-            public string ZoneId { get; set; }
-
             public string DisplayName { get; set; }
 
             public int UtcOffsetMinutes { get; set; }

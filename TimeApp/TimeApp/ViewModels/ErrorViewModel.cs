@@ -1,4 +1,4 @@
-namespace TimeApp.Models
+namespace TimeApp.ViewModels
 {
     public class ErrorViewModel
     {
