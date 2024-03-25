@@ -2,13 +2,22 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Azure.Cosmos;
+using Microsoft.Extensions.Options;
 
 namespace TimeApp.Foundation.TimeData
 {
     public sealed class TimeDataRepository: ITimeDataRepository
     {
         private const string EndpointUri = "https://twilight-sparkle-azure-db-time-app.documents.azure.com:443";
-        private const string PrimaryKey = "";
+
+        private string PrimaryKey => _options.CosmosKey;
+        private readonly AzureOptions _options;
+
+
+        public TimeDataRepository(IOptions<AzureOptions> options)
+        {
+            _options = options.Value;
+        }
 
 
         public async Task<Models.TimeData> GetByIdAsync(string zoneId)
@@ -79,7 +88,7 @@ namespace TimeApp.Foundation.TimeData
         }
 
 
-        private static CosmosClient GetClient()
+        private CosmosClient GetClient()
         {
             var client = new CosmosClient(EndpointUri, PrimaryKey, new CosmosClientOptions { ApplicationName = "TimeWebApp" });
 

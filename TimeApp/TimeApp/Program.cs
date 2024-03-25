@@ -1,43 +1,28 @@
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
-using TimeApp.Foundation.Blobs;
-using TimeApp.Foundation.TimeData;
+using Microsoft.Extensions.Logging;
 
-var builder = WebApplication.CreateBuilder(args);
-
-builder.Services.AddControllersWithViews();
-
-builder.Services.AddSingleton<ITimeDataRepository, TimeDataRepository>();
-//builder.Services.AddSingleton<ITimeDataRepository, InMemoryTimeDataRepository>();
-builder.Services.AddSingleton<IBlobService, BlobService>();
-
-
-builder.Services.AddCors(options =>
+namespace TimeApp
 {
-    options.AddDefaultPolicy(builder =>
+    public static class Program
     {
-        builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader().WithExposedHeaders("*");
-    });
-});
+        public static void Main(string[] args)
+        {
+            using (var host = CreateHostBuilder(args).Build())
+            {
+                host.Run();
+            }
+        }
 
-var app = builder.Build();
 
-if (!app.Environment.IsDevelopment())
-{
-    app.UseHsts();
+        private static IHostBuilder CreateHostBuilder(string[] args) => Host
+            .CreateDefaultBuilder(args)
+            .ConfigureLogging((hostContext, builder) =>
+            {
+                builder.ClearProviders();
+                builder.AddConfiguration(hostContext.Configuration.GetSection("Logging"));
+                builder.AddConsole();
+            })
+            .ConfigureWebHostDefaults(webBuilder => webBuilder.UseStartup<Startup>());
+    }
 }
-
-
-app.UseCors();
-app.UseHttpsRedirection();
-
-app.UseRouting();
-
-app.UseAuthorization();
-
-app.MapControllerRoute(
-    name: "default",
-    pattern: "api/{controller=Home}/{action=Index}/{id?}");
-
-app.Run();
