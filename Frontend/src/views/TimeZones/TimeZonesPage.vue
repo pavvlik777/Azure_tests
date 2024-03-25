@@ -67,7 +67,11 @@ export default {
         },
         async onTimeZoneDelete(zoneId) {
             await timeZonesService.deleteTimezoneAsync(zoneId);
-            await this.initialLoadAsync();
+            const timeZoneToRemove = this.timeZones.find(z => z.zoneId === zoneId);
+            const index = this.timeZones.indexOf(timeZoneToRemove);
+            if (index > -1) {
+                this.timeZones.splice(index, 1);
+            }
         },
         onCalculateDiff(diff) {
             this.currentDiff = diff / 60 + ' hours';

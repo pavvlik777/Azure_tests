@@ -1,5 +1,5 @@
 <template>
-    <Spinner :isEnabled="this.isLoading">
+    <Spinner :isEnabled="this.showSpinner">
         <AppForm :header-text="'Edit timezone'" :footer-text="'Save'" :is-model-invalid="this.isInvalid"
             :error-text="this.errorText" @form:click="onEditClick">
             <AppFormParam :error-text="displayNameErrorText">
@@ -25,11 +25,11 @@
 </template>
 
 <script>
-import { routerHelper } from "@/utils"
+import { routerHelper } from "@/utils";
 import { timeZonesService } from "@/dependencies";
 
-import { AppInput } from "@/components/AppInput"
-import { AppForm, AppFormParam } from "@/components/AppForm"
+import { AppInput } from "@/components/AppInput";
+import { AppForm, AppFormParam } from "@/components/AppForm";
 import { Spinner } from "@/components/Spinner";
 
 export default {
@@ -47,6 +47,7 @@ export default {
                 utcOffsetMinutes: null,
             },
             isLoading: true,
+            isEditing: false,
             errorText: "",
         }
     },
@@ -68,6 +69,9 @@ export default {
 
             return "";
         },
+        showSpinner() {
+            return this.isLoading || this.isEditing;
+        },
         isInvalid() {
             return this.displayNameErrorText !== "" || this.utcOffsetMinutesErrorText !== "";
         }
@@ -88,6 +92,7 @@ export default {
         },
         async onEditClick() {
             try {
+                this.isEditing = true;
                 await timeZonesService.updateTimezoneAsync(this.$route.params.zoneId, this.model.displayName, this.model.utcOffsetMinutes);
                 this.$router
                     .push({

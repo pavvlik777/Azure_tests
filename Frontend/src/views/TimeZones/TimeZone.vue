@@ -1,36 +1,38 @@
 <template>
-    <div class="time-zone">
-        <div class="time-zone__content">
-            <div class="time-zone__content__display-name">
-                {{ this.displayName }}
-            </div>
-            <div class="time-zone__content__current-time">
-                {{ this.currentTime }}
-            </div>
-            <div class="time-zone__content__time-zone-diff">
-                <AppButton @buttonClick="onTimeZoneDiffClick" size="small">
-                    Diff
-                </AppButton>
-            </div>
-            <div class="time-zone__content__update">
-                <AppButton @buttonClick="onUpdateClick" size="small">
-                    Update
-                </AppButton>
-            </div>
-            <div class="time-zone__content__delete">
-                <AppButton :disabled="this.timeZone.isBuiltIn" @buttonClick="onDeleteClick" size="small">
-                    Delete
-                </AppButton>
-            </div>
-            <div class="time-zone__content__image">
-                <Spinner :isEnabled="this.isImageLoading">
-                    <ImageBox :image="this.timeZoneImage" />
-                    <AppDropbox @dropbox:load="this.onLoadPicture($event)" :formats="['image/*']">
-                    </AppDropbox>
-                </Spinner>
+    <Spinner :isEnabled="this.isDeleting">
+        <div class="time-zone">
+            <div class="time-zone__content">
+                <div class="time-zone__content__display-name">
+                    {{ this.displayName }}
+                </div>
+                <div class="time-zone__content__current-time">
+                    {{ this.currentTime }}
+                </div>
+                <div class="time-zone__content__time-zone-diff">
+                    <AppButton @buttonClick="onTimeZoneDiffClick" size="small">
+                        Diff
+                    </AppButton>
+                </div>
+                <div class="time-zone__content__update">
+                    <AppButton @buttonClick="onUpdateClick" size="small">
+                        Update
+                    </AppButton>
+                </div>
+                <div class="time-zone__content__delete">
+                    <AppButton :disabled="this.timeZone.isBuiltIn" @buttonClick="onDeleteClick" size="small">
+                        Delete
+                    </AppButton>
+                </div>
+                <div class="time-zone__content__image">
+                    <Spinner :isEnabled="this.isImageLoading">
+                        <ImageBox :image="this.timeZoneImage" />
+                        <AppDropbox @dropbox:load="this.onLoadPicture($event)" :formats="['image/*']">
+                        </AppDropbox>
+                    </Spinner>
+                </div>
             </div>
         </div>
-    </div>
+    </Spinner>
 </template>
 
 <script>
@@ -63,6 +65,7 @@ export default {
             currentTimeInterval: null,
             currentTime: null,
             isImageLoading: false,
+            isDeleting: false,
         }
     },
     beforeUnmount() {
@@ -100,6 +103,7 @@ export default {
                 .catch(() => { });
         },
         onDeleteClick() {
+            this.isDeleting = true;
             this.$emit("time-zone:delete", this.timeZone.zoneId);
         },
         async onTimeZoneDiffClick() {

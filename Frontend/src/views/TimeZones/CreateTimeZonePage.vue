@@ -1,42 +1,45 @@
 <template>
-    <AppForm :header-text="'Create timezone'" :footer-text="'Save'" :is-model-invalid="this.isInvalid"
-        :error-text="this.errorText" @form:click="onCreateClick">
-        <AppFormParam :error-text="displayNameErrorText">
-            <template v-slot:label>
-                <label for="displayName"> Display Name </label>
-            </template>
-            <template v-slot:input>
-                <AppInput id="displayName" v-model="this.model.displayName"
-                    :invalid="displayNameErrorText.length > 0" />
-            </template>
-        </AppFormParam>
-        <AppFormParam :error-text="utcOffsetMinutesErrorText">
-            <template v-slot:label>
-                <label for="utcOffsetMinutes"> UTC Offset Minutes </label>
-            </template>
-            <template v-slot:input>
-                <AppInput id="utcOffsetMinutes" type="number" v-model="this.model.utcOffsetMinutes"
-                    :invalid="utcOffsetMinutesErrorText.length > 0" />
-            </template>
-        </AppFormParam>
-        <AppFormParam :error-text="''">
-            <template v-slot:label>
-                <label for="ttl"> TTL </label>
-            </template>
-            <template v-slot:input>
-                <AppToggle id="ttl" v-model="this.model.ttl" :invalid="false" />
-            </template>
-        </AppFormParam>
-    </AppForm>
+    <Spinner :isEnabled="this.showSpinner">
+        <AppForm :header-text="'Create timezone'" :footer-text="'Save'" :is-model-invalid="this.isInvalid"
+            :error-text="this.errorText" @form:click="onCreateClick">
+            <AppFormParam :error-text="displayNameErrorText">
+                <template v-slot:label>
+                    <label for="displayName"> Display Name </label>
+                </template>
+                <template v-slot:input>
+                    <AppInput id="displayName" v-model="this.model.displayName"
+                        :invalid="displayNameErrorText.length > 0" />
+                </template>
+            </AppFormParam>
+            <AppFormParam :error-text="utcOffsetMinutesErrorText">
+                <template v-slot:label>
+                    <label for="utcOffsetMinutes"> UTC Offset Minutes </label>
+                </template>
+                <template v-slot:input>
+                    <AppInput id="utcOffsetMinutes" type="number" v-model="this.model.utcOffsetMinutes"
+                        :invalid="utcOffsetMinutesErrorText.length > 0" />
+                </template>
+            </AppFormParam>
+            <AppFormParam :error-text="''">
+                <template v-slot:label>
+                    <label for="ttl"> TTL </label>
+                </template>
+                <template v-slot:input>
+                    <AppToggle id="ttl" v-model="this.model.ttl" :invalid="false" />
+                </template>
+            </AppFormParam>
+        </AppForm>
+    </Spinner>
 </template>
 
 <script>
-import { routerHelper } from "@/utils"
+import { routerHelper } from "@/utils";
 import { timeZonesService } from "@/dependencies";
 
-import { AppInput } from "@/components/AppInput"
-import { AppForm, AppFormParam } from "@/components/AppForm"
-import { AppToggle } from "@/components/AppToggle"
+import { AppInput } from "@/components/AppInput";
+import { AppForm, AppFormParam } from "@/components/AppForm";
+import { AppToggle } from "@/components/AppToggle";
+import { Spinner } from "@/components/Spinner";
 
 export default {
     name: "CreateTimeZonePage",
@@ -45,6 +48,7 @@ export default {
         AppForm,
         AppFormParam,
         AppToggle,
+        Spinner,
     },
     data() {
         return {
@@ -53,6 +57,7 @@ export default {
                 utcOffsetMinutes: null,
                 ttl: false,
             },
+            isCreating: false,
             errorText: "",
         }
     },
@@ -71,6 +76,9 @@ export default {
 
             return "";
         },
+        showSpinner() {
+            return this.isCreating;
+        },
         isInvalid() {
             return this.displayNameErrorText !== "" || this.utcOffsetMinutesErrorText !== "";
         }
@@ -78,6 +86,7 @@ export default {
     methods: {
         async onCreateClick() {
             try {
+                this.isCreating = true;
                 await timeZonesService.createTimezoneAsync(this.model.displayName, this.model.utcOffsetMinutes, this.model.ttl);
                 this.$router
                     .push({
@@ -103,7 +112,7 @@ export default {
 </script>
 
 <style lang="scss">
-.edit-time-zones-page {
+.create-time-zones-page {
     display: flex;
     flex-direction: column;
 }
