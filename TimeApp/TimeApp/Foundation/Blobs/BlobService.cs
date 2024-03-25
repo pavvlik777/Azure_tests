@@ -1,20 +1,23 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using Microsoft.Extensions.Options;
+using TimeApp.Options;
 
 namespace TimeApp.Foundation.Blobs
 {
     public sealed class BlobService : IBlobService
     {
-        private const string AccountName = "azuretestdev9e8a";
+        private const int PageSize = 50;
 
-        private string SasToken => _options.BlobKey;
-        private readonly AzureOptions _options;
+        private readonly AzureBlobOptions _options;
 
 
-        public BlobService(IOptions<AzureOptions> options)
+        public BlobService(IOptions<AzureBlobOptions> options)
         {
             _options = options.Value;
         }
@@ -22,17 +25,47 @@ namespace TimeApp.Foundation.Blobs
 
         public async Task UploadImageAsync(Stream image, string filename)
         {
-            var client = GetBlobServiceClient(AccountName);
-            var containerClient = client.GetBlobContainerClient("images");
+            var containerClient = GetBlobContainerClient();
             await containerClient.UploadBlobAsync(filename, image);
         }
 
-
-        private BlobServiceClient GetBlobServiceClient(string accountName)
+        public async Task DeleteImageAsync(string filename)
         {
-            var client = new BlobServiceClient(new Uri($"https://{accountName}.blob.core.windows.net?{SasToken}"));
+            var containerClient = GetBlobContainerClient();
+            await containerClient.GetBlobClient(filename).DeleteIfExistsAsync();
+        }
 
-            return client;
+        public async Task DeleteAllImagesExceptAsync(IReadOnlyCollection<string> fileNames)
+        {
+            var containerClient = GetBlobContainerClient();
+            var resultSegment = containerClient.GetBlobsAsync().AsPages(default, PageSize);
+            var images = new List<BlobItem>();
+            try
+            {
+                await foreach (var blobPage in resultSegment)
+                {
+                    images.AddRange(blobPage.Values);
+                }
+
+                images = images.Where(i => !fileNames.Contains(i.Name)).ToList();
+                foreach (var image in images)
+                {
+                    await containerClient.GetBlobClient(image.Name).DeleteIfExistsAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+        }
+
+
+        private BlobContainerClient GetBlobContainerClient()
+        {
+            var client = new BlobServiceClient(new Uri($"https://{_options.AccountName}.blob.core.windows.net?{_options.SasKey}"));
+            var containerClient = client.GetBlobContainerClient("images");
+
+            return containerClient;
         }
     }
 }

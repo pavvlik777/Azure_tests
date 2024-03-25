@@ -1,12 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using TimeApp.Foundation.Blobs;
-using TimeApp.Foundation.TimeData;
-using TimeApp.Models;
+using TimeApp.DataContracts;
+using TimeApp.Foundation.TimeZone;
+using TimeApp.Foundation.TimeZone.Models;
 
 namespace TimeApp.Controllers
 {
@@ -14,71 +14,79 @@ namespace TimeApp.Controllers
     [Route("api/time")]
     public sealed class TimeController : ControllerBase
     {
-        private readonly ITimeDataRepository _timeDataRepository;
-        private readonly IBlobService _blobService;
+        private readonly ITimeZoneService _timeZoneService;
 
 
-        public TimeController(ITimeDataRepository timeDataRepository, IBlobService blobService)
+        public TimeController(ITimeZoneService timeZoneService)
         {
-            _timeDataRepository = timeDataRepository;
-            _blobService = blobService;
+            _timeZoneService = timeZoneService;
         }
 
 
         [HttpGet]
-        public async Task<ActionResult<IReadOnlyCollection<TimeData>>> Get()
+        public async Task<ActionResult<IReadOnlyCollection<TimeZoneDataContract>>> Get()
         {
-            var timezones = await _timeDataRepository.GetAllAsync();
+            var timeZones = await _timeZoneService.GetAllAsync();
+            var dataContracts = timeZones.Select(CreateFrom).ToList();
 
-            return Ok(timezones);
+            return Ok(dataContracts);
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<TimeData>> Get(string id)
+        public async Task<ActionResult<TimeZoneDataContract>> Get(string id)
         {
-            var timeData = await _timeDataRepository.GetByIdAsync(id);
-            if (timeData == null)
+            var timeZone = await _timeZoneService.GetByIdAsync(id);
+            if (timeZone == null)
             {
                 return NotFound();
             }
 
-            return Ok(timeData);
+            var dataContract = CreateFrom(timeZone);
+
+            return Ok(dataContract);
         }
 
         [HttpPost]
-        public async Task<ActionResult<TimeData>> Post([FromBody] CreateTimeDataRequest request)
+        public async Task<ActionResult<TimeZoneDataContract>> Post([FromBody] CreateTimeZoneRequest request)
         {
-            var timeData = CreateFrom(request);
-            var result = await _timeDataRepository.AddAsync(timeData, request.Ttl);
+            var createTimeZoneInfo = CreateFrom(request);
+            var createdTimeZone = await _timeZoneService.AddAsync(createTimeZoneInfo);
+            var dataContract = CreateFrom(createdTimeZone);
 
-            return Ok(result);
+            return Ok(dataContract);
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<TimeData>> Put(string id, [FromBody] UpdateTimeDataRequest request)
+        public async Task<ActionResult<TimeZoneDataContract>> Put(string id, [FromBody] UpdateTimeZoneRequest request)
         {
-            var timeData = await _timeDataRepository.GetByIdAsync(id);
-            if (timeData == null)
+            var timeZone = await _timeZoneService.GetByIdAsync(id);
+            if (timeZone == null)
             {
                 return NotFound();
             }
 
-            var toTimeData = CreateFrom(request);
-            var result = await _timeDataRepository.UpdateAsync(timeData, toTimeData);
+            var updateTimeZoneInfo = CreateFrom(request);
+            var updatedTimeZone = await _timeZoneService.UpdateAsync(timeZone, updateTimeZoneInfo);
+            var dataContract = CreateFrom(updatedTimeZone);
 
-            return Ok(result);
+            return dataContract;
         }
 
         [HttpDelete("{id}")]
-        public async Task<ActionResult<TimeData>> Delete(string id)
+        public async Task<ActionResult<TimeZoneDataContract>> Delete(string id)
         {
-            var timeData = await _timeDataRepository.GetByIdAsync(id);
-            if (timeData == null)
+            var timeZone = await _timeZoneService.GetByIdAsync(id);
+            if (timeZone == null)
             {
                 return NotFound();
             }
 
-            await _timeDataRepository.DeleteAsync(id);
+            if (timeZone.IsBuiltIn)
+            {
+                return BadRequest();
+            }
+
+            await _timeZoneService.DeleteAsync(timeZone);
 
             return Ok();
         }
@@ -86,13 +94,13 @@ namespace TimeApp.Controllers
         [HttpPost("diff/{first}/{second}")]
         public async Task<ActionResult<int>> Diff(string first, string second)
         {
-            var firstTimeZone = await _timeDataRepository.GetByIdAsync(first);
+            var firstTimeZone = await _timeZoneService.GetByIdAsync(first);
             if (firstTimeZone == null)
             {
                 return BadRequest();
             }
 
-            var secondTimeZone = await _timeDataRepository.GetByIdAsync(second);
+            var secondTimeZone = await _timeZoneService.GetByIdAsync(second);
             if (secondTimeZone == null)
             {
                 return BadRequest();
@@ -112,48 +120,56 @@ namespace TimeApp.Controllers
         }
 
         [HttpPatch("{id}/image")]
-        public async Task<ActionResult<TimeData>> UpdateImage(string id, IFormFile image)
+        public async Task<ActionResult<TimeZoneDataContract>> UpdateImage(string id, IFormFile image)
         {
-            var timeData = await _timeDataRepository.GetByIdAsync(id);
-            if (timeData == null)
+            var timeZone = await _timeZoneService.GetByIdAsync(id);
+            if (timeZone == null)
             {
                 return NotFound();
             }
 
-            await using (var imageStream = image.OpenReadStream())
-            {
-                var fileId = $"{Guid.NewGuid()}_{image.FileName}";
-                await _blobService.UploadImageAsync(imageStream, fileId);
+            await using var imageStream = image.OpenReadStream();
 
-                var toTimeData = timeData.Clone();
-                toTimeData.ImageId = fileId;
-                var updatedTimeData = await _timeDataRepository.UpdateAsync(timeData, toTimeData);
+            var updatedTimeZone = await _timeZoneService.UpdateImageAsync(timeZone, imageStream, image.FileName);
+            var dataContract = CreateFrom(updatedTimeZone);
 
-                return updatedTimeData;
-            }
+            return dataContract;
         }
 
 
-        private static TimeData CreateFrom(CreateTimeDataRequest request)
+        private static TimeZoneDataContract CreateFrom(Repositories.Models.TimeZone timeZone)
         {
-            return new TimeData
+            return new TimeZoneDataContract
+            {
+                ZoneId = timeZone.ZoneId,
+                DisplayName = timeZone.DisplayName,
+                UtcOffsetMinutes = timeZone.UtcOffsetMinutes,
+                ImageId = timeZone.ImageId,
+                IsBuiltIn = timeZone.IsBuiltIn,
+            };
+        }
+
+        private static CreateTimeZoneInfo CreateFrom(CreateTimeZoneRequest request)
+        {
+            return new CreateTimeZoneInfo
+            {
+                DisplayName = request.DisplayName,
+                UtcOffsetMinutes = request.UtcOffsetMinutes,
+                Ttl = request.Ttl,
+            };
+        }
+
+        private static UpdateTimeZoneInfo CreateFrom(UpdateTimeZoneRequest request)
+        {
+            return new UpdateTimeZoneInfo
             {
                 DisplayName = request.DisplayName,
                 UtcOffsetMinutes = request.UtcOffsetMinutes
             };
         }
 
-        private static TimeData CreateFrom(UpdateTimeDataRequest request)
-        {
-            return new TimeData
-            {
-                DisplayName = request.DisplayName,
-                UtcOffsetMinutes = request.UtcOffsetMinutes
-            };
-        }
 
-
-        public sealed class CreateTimeDataRequest
+        public sealed class CreateTimeZoneRequest
         {
             public string DisplayName { get; set; }
 
@@ -162,7 +178,7 @@ namespace TimeApp.Controllers
             public bool Ttl { get; set; }
         }
 
-        public sealed class UpdateTimeDataRequest
+        public sealed class UpdateTimeZoneRequest
         {
             public string DisplayName { get; set; }
 

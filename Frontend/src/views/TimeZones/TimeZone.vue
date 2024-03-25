@@ -18,14 +18,16 @@
                 </AppButton>
             </div>
             <div class="time-zone__content__delete">
-                <AppButton @buttonClick="onDeleteClick" size="small">
+                <AppButton :disabled="this.timeZone.isBuiltIn" @buttonClick="onDeleteClick" size="small">
                     Delete
                 </AppButton>
             </div>
             <div class="time-zone__content__image">
-                <ImageBox :image="this.timeZoneImage" />
-                <AppDropbox @dropbox:load="this.onLoadPicture($event)" :formats="['image/*']">
-                </AppDropbox>
+                <Spinner :isEnabled="this.isImageLoading">
+                    <ImageBox :image="this.timeZoneImage" />
+                    <AppDropbox @dropbox:load="this.onLoadPicture($event)" :formats="['image/*']">
+                    </AppDropbox>
+                </Spinner>
             </div>
         </div>
     </div>
@@ -40,6 +42,7 @@ import { timeZonesService } from "@/dependencies";
 import { ImageBox, imageBoxImageCreator } from "@/components/ImageBox";
 import { AppButton } from "@/components/AppButton";
 import { AppDropbox } from "@/components/AppDropbox";
+import { Spinner } from "@/components/Spinner";
 
 export default {
     name: "TimeZone",
@@ -47,6 +50,7 @@ export default {
         ImageBox,
         AppButton,
         AppDropbox,
+        Spinner,
     },
     props: {
         timeZone: {
@@ -58,6 +62,7 @@ export default {
         return {
             currentTimeInterval: null,
             currentTime: null,
+            isImageLoading: false,
         }
     },
     beforeUnmount() {
@@ -79,8 +84,6 @@ export default {
             return this.timeZone.displayName;
         },
         timeZoneImage() {
-            console.log('update');
-
             return this.createPortraitImage(
                 this.timeZone.imageId,
                 this.default_image
@@ -107,10 +110,12 @@ export default {
         },
         async onLoadPicture({ data }) {
             if (data) {
+                this.isImageLoading = true;
                 const response = await timeZonesService.updateImageAsync(this.timeZone.zoneId, data);
                 const result = response.data;
 
                 this.$emit("time-zone:update-image", this.timeZone.zoneId, result);
+                this.isImageLoading = false;
             }
         },
         createPortraitImage: imageBoxImageCreator.createFrom,
@@ -127,7 +132,7 @@ export default {
     justify-content: space-between;
     margin: 10px 10px 10px 10px;
     min-width: 400px;
-    min-height: 140px;
+    min-height: 200px;
     overflow: hidden;
     position: relative;
 
@@ -165,7 +170,25 @@ export default {
         }
 
         &__image {
+            align-self: stretch;
+            max-width: 90px;
+            max-height: 90px;
             grid-area: time-zone-image;
+
+            &>.spinner {
+                width: 90px;
+                height: 90px;
+            }
+
+            &>.imagebox {
+                width: 90px;
+                height: 90px;
+            }
+
+            &>.app-dropbox {
+                width: 90px;
+                height: 40px;
+            }
         }
     }
 }

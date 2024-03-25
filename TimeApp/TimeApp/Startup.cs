@@ -2,7 +2,9 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using TimeApp.Foundation.Blobs;
-using TimeApp.Foundation.TimeData;
+using TimeApp.Foundation.TimeZone;
+using TimeApp.Options;
+using TimeApp.Repositories.TimeZone;
 
 namespace TimeApp
 {
@@ -19,13 +21,15 @@ namespace TimeApp
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.Configure<AzureOptions>(_configuration.GetSection(AzureOptions.SectionName));
+            services.Configure<AzureCosmosOptions>(_configuration.GetSection(AzureCosmosOptions.SectionName));
+            services.Configure<AzureBlobOptions>(_configuration.GetSection(AzureBlobOptions.SectionName));
 
-            services.AddSingleton<ITimeDataRepository, TimeDataRepository>();
-            //services.AddSingleton<ITimeDataRepository, InMemoryTimeDataRepository>();
+            services.AddScoped<ITimeZoneService, TimeZoneService>();
+            services.AddSingleton<ITimeZoneRepository, TimeZoneRepository>();
             services.AddSingleton<IBlobService, BlobService>();
+            services.AddSingleton<IBlobCleanupService, BlobCleanupService>();
 
-
+            services.AddHostedService<TimeAppHostedService>();
 
             services.AddCors(options =>
             {
