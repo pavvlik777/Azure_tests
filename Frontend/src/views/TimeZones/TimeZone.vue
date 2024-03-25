@@ -23,13 +23,9 @@
                 </AppButton>
             </div>
             <div class="time-zone__content__image">
-                <ImageBox :image="this.createPortraitImage(
-                    this.timeZone.imageId,
-                    this.default_image
-                )
-                    " />
-                <input ref="fileInput" :name="uploadFileName" :disabled="isLoading" :accept="supportedFormats"
-                    type="file" class="app-dropbox__input-file" @change="fileChanged" />
+                <ImageBox :image="this.timeZoneImage" />
+                <AppDropbox @dropbox:load="this.onLoadPicture($event)" :formats="['image/*']">
+                </AppDropbox>
             </div>
         </div>
     </div>
@@ -43,12 +39,14 @@ import { timeZonesService } from "@/dependencies";
 
 import { ImageBox, imageBoxImageCreator } from "@/components/ImageBox";
 import { AppButton } from "@/components/AppButton";
+import { AppDropbox } from "@/components/AppDropbox";
 
 export default {
     name: "TimeZone",
     components: {
         ImageBox,
         AppButton,
+        AppDropbox,
     },
     props: {
         timeZone: {
@@ -79,6 +77,14 @@ export default {
     computed: {
         displayName() {
             return this.timeZone.displayName;
+        },
+        timeZoneImage() {
+            console.log('update');
+
+            return this.createPortraitImage(
+                this.timeZone.imageId,
+                this.default_image
+            );
         }
     },
     methods: {
@@ -98,6 +104,14 @@ export default {
             const result = response.data;
 
             this.$emit("time-zone:calculate-diff", result);
+        },
+        async onLoadPicture({ data }) {
+            if (data) {
+                const response = await timeZonesService.updateImageAsync(this.timeZone.zoneId, data);
+                const result = response.data;
+
+                this.$emit("time-zone:update-image", this.timeZone.zoneId, result);
+            }
         },
         createPortraitImage: imageBoxImageCreator.createFrom,
     }

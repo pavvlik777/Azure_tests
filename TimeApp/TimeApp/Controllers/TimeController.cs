@@ -1,7 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using TimeApp.Foundation.Blobs;
 using TimeApp.Foundation.TimeData;
 using TimeApp.Models;
 
@@ -12,11 +15,13 @@ namespace TimeApp.Controllers
     public sealed class TimeController : ControllerBase
     {
         private readonly ITimeDataRepository _timeDataRepository;
+        private readonly IBlobService _blobService;
 
 
-        public TimeController(ITimeDataRepository timeDataRepository)
+        public TimeController(ITimeDataRepository timeDataRepository, IBlobService blobService)
         {
             _timeDataRepository = timeDataRepository;
+            _blobService = blobService;
         }
 
 
@@ -104,6 +109,28 @@ namespace TimeApp.Controllers
             var result = await response.Content.ReadAsStringAsync();
 
             return int.Parse(result);
+        }
+
+        [HttpPatch("{id}/image")]
+        public async Task<ActionResult<TimeData>> UpdateImage(string id, IFormFile image)
+        {
+            var timeData = await _timeDataRepository.GetByIdAsync(id);
+            if (timeData == null)
+            {
+                return NotFound();
+            }
+
+            await using (var imageStream = image.OpenReadStream())
+            {
+                var fileId = $"{Guid.NewGuid()}_{image.FileName}";
+                await _blobService.UploadImageAsync(imageStream, fileId);
+
+                var toTimeData = timeData.Clone();
+                toTimeData.ImageId = fileId;
+                var updatedTimeData = await _timeDataRepository.UpdateAsync(timeData, toTimeData);
+
+                return updatedTimeData;
+            }
         }
 
 

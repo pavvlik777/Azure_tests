@@ -7,7 +7,8 @@
             </div>
             <div class="time-zones-container">
                 <TimeZone v-for="timeZone in this.timeZones" :key="timeZone.zoneId" :time-zone="timeZone"
-                    @time-zone:delete="this.onTimeZoneDelete" @time-zone:calculate-diff="this.onCalculateDiff" />
+                    @time-zone:update-image="this.onTimeZoneImageUpdate" @time-zone:delete="this.onTimeZoneDelete"
+                    @time-zone:calculate-diff="this.onCalculateDiff" />
             </div>
             <AppButton @buttonClick="onAddNewTimeZoneClick">
                 Add new time zone
@@ -55,6 +56,14 @@ export default {
             const response = await timeZonesService.getTimeZonesAsync();
 
             return response.data;
+        },
+        async onTimeZoneImageUpdate(zoneId, timeZone) {
+            const timeZoneToUpdate = this.timeZones.find(z => z.zoneId === zoneId);
+            if (timeZoneToUpdate) {
+                timeZoneToUpdate.displayName = timeZone.displayName;
+                timeZoneToUpdate.utcOffsetMinutes = timeZone.utcOffsetMinutes;
+                timeZoneToUpdate.imageId = timeZone.imageId;
+            }
         },
         async onTimeZoneDelete(zoneId) {
             await timeZonesService.deleteTimezoneAsync(zoneId);

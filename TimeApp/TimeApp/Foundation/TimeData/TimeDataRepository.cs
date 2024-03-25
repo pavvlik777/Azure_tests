@@ -7,7 +7,7 @@ namespace TimeApp.Foundation.TimeData
 {
     public sealed class TimeDataRepository: ITimeDataRepository
     {
-        private const string EndpointUri = "";
+        private const string EndpointUri = "https://twilight-sparkle-azure-db-time-app.documents.azure.com:443";
         private const string PrimaryKey = "";
 
 
@@ -16,9 +16,16 @@ namespace TimeApp.Foundation.TimeData
             using var client = GetClient();
             var container = GetContainer(client);
 
-            var response = await container.ReadItemAsync<Models.TimeData>(zoneId, new PartitionKey(zoneId));
+            try
+            {
+                var response = await container.ReadItemAsync<Models.TimeData>(zoneId, new PartitionKey(zoneId));
 
-            return response.Resource;
+                return response.Resource;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
         }
 
         public async Task<IReadOnlyCollection<Models.TimeData>> GetAllAsync()
@@ -43,7 +50,9 @@ namespace TimeApp.Foundation.TimeData
             var container = GetContainer(client);
 
             timeData.ZoneId = Guid.NewGuid().ToString();
-            var response = await container.CreateItemAsync(timeData);
+            timeData.Id = timeData.ZoneId;
+            timeData.Ttl = ttl ? 60 : -1;
+            var response = await container.CreateItemAsync(timeData, new PartitionKey(timeData.ZoneId));
 
             return response.Resource;
         }
@@ -55,6 +64,7 @@ namespace TimeApp.Foundation.TimeData
 
             fromTimeData.DisplayName = toTimeData.DisplayName;
             fromTimeData.UtcOffsetMinutes = toTimeData.UtcOffsetMinutes;
+            fromTimeData.ImageId = toTimeData.ImageId;
             var response = await container.ReplaceItemAsync(fromTimeData, fromTimeData.ZoneId, new PartitionKey(fromTimeData.ZoneId));
 
             return response.Resource;
@@ -78,8 +88,8 @@ namespace TimeApp.Foundation.TimeData
 
         private static Container GetContainer(CosmosClient client)
         {
-            var database = client.GetDatabase("time-app");
-            var container = database.GetContainer("time-zones");
+            var database = client.GetDatabase("time-app-db");
+            var container = database.GetContainer("cityInfos");
 
             return container;
         }

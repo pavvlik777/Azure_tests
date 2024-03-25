@@ -54,34 +54,41 @@ export default {
       isLoading: false,
     };
   },
+  watch: {
+    image: async function () {
+      await this.setImageAsync();
+    },
+  },
   async created() {
-    const imageUrl = this.image.imageId
-      ? this.getImageUrl(this.image.imageId)
-      : this.image.defaultImage;
-
-    this.isLoading = !!this.image.imageId;
-
-    try {
-      const response = await fetch(imageUrl);
-      if (response.status === 200) {
-        const imageBlob = await response.blob();
-        const imageObjectUrl = URL.createObjectURL(imageBlob);
-
-        const setPortraitData = this.setPortraitData;
-
-        const image = new Image();
-        image.onload = function () {
-          const width = this.width;
-          const height = this.height;
-          setPortraitData(imageUrl, imageBlob, width, height);
-        };
-        image.src = imageObjectUrl;
-      }
-    } catch {
-      //
-    }
+    await this.setImageAsync();
   },
   methods: {
+    async setImageAsync() {
+      const imageUrl = this.image.imageId
+        ? this.getImageUrl(this.image.imageId)
+        : this.image.defaultImage;
+      this.isLoading = !!this.image.imageId;
+
+      try {
+        const response = await fetch(imageUrl);
+        if (response.status === 200) {
+          const imageBlob = await response.blob();
+          const imageObjectUrl = URL.createObjectURL(imageBlob);
+
+          const setPortraitData = this.setPortraitData;
+
+          const image = new Image();
+          image.onload = function () {
+            const width = this.width;
+            const height = this.height;
+            setPortraitData(imageUrl, imageBlob, width, height);
+          };
+          image.src = imageObjectUrl;
+        }
+      } catch {
+        //
+      }
+    },
     setPortraitData(imageContent, data, width, height) {
       this.imageInternal = {
         image: imageContent,
@@ -92,8 +99,7 @@ export default {
       this.isLoading = false;
     },
     getImageUrl(imageId) {
-      console.log(imageId);
-      //TODO
+      return `https://azuretestdev9e8a.blob.core.windows.net/images/${imageId}`;
     }
   },
 };

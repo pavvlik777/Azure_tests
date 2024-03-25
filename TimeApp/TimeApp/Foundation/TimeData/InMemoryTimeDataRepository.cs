@@ -59,6 +59,7 @@ namespace TimeApp.Foundation.TimeData
         public Task<Models.TimeData> AddAsync(Models.TimeData timeData, bool ttl)
         {
             timeData.ZoneId = Guid.NewGuid().ToString();
+            timeData.Ttl = ttl ? 60 : 0;
             Timezones.Add(timeData);
 
             return Task.FromResult(timeData);
@@ -69,6 +70,7 @@ namespace TimeApp.Foundation.TimeData
             var timeDataToUpdate = Timezones.Single(d => d.ZoneId == fromTimeData.ZoneId);
             timeDataToUpdate.DisplayName = toTimeData.DisplayName;
             timeDataToUpdate.UtcOffsetMinutes = toTimeData.UtcOffsetMinutes;
+            fromTimeData.ImageId = toTimeData.ImageId;
 
             return Task.FromResult(timeDataToUpdate);
         }

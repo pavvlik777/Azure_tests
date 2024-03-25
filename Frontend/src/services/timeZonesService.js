@@ -48,6 +48,20 @@ class TimeZonesService {
         `/time/diff/${firstId}/${secondId}`
     );
   }
+
+  updateImageAsync(zoneId, data) {
+    const formData = new FormData();
+    formData.append("image", data);
+
+    return axios({
+      method: "patch",
+      url:
+        process.env.VUE_APP_TIME_APP_API_BASEPATH +
+        `/time/${zoneId}/image`,
+      data: formData,
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  }
 }
 
 export default TimeZonesService;
