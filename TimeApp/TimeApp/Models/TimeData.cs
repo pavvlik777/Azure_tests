@@ -8,8 +8,8 @@
 
         public int UtcOffsetMinutes { get; set; }
 
-        public string ImageBlobId { get; set; }
+        //public string ImageBlobId { get; set; }
 
-        public int Ttl { get; set; }
+        //public int Ttl { get; set; }
     }
 }

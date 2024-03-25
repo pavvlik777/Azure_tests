@@ -1,0 +1,27 @@
+body {
+    background-color: $background-color;
+    color: $font-primary-color;
+    display: flex;
+    flex-direction: column;
+    font-size: $font-size-default;
+    margin: 0;
+}
+
+*, *::after, *::before {
+    box-sizing: border-box;
+}
+
+a {
+    color: $font-primary-color;
+    text-decoration: none;
+}
+
+a:hover {
+    color: $font-secondary-color;
+    cursor: pointer;
+}
+
+h1, h2, h3, h4 {
+    color: $font-primary-color;
+    margin: 0;
+}

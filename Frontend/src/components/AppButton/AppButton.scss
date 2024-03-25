@@ -1,0 +1,93 @@
+.button {
+    width: fit-content;
+    padding: 5px 10px;
+    color: $font-primary-color;
+    cursor: default;
+
+    &.enabled {
+        cursor: pointer;
+    }
+
+    &--primary.enabled:hover {
+        color: $font-secondary-color;
+    }
+
+    &--primary:not(&--text) {
+        background-color: $secondary-darken-color;
+    }
+
+    &--primary.enabled:not(&--text) {
+        background-color: $primary-color;
+
+        &:hover {
+            background-color: $primary-darken-color;
+        }
+
+        &:active {
+            transform: translate(0, 1px);
+            box-shadow: 0 0 1px 1px $white-color;
+        }
+    }
+
+    &--danger.enabled:hover {
+        color: $font-primary-color;
+    }
+
+    &--danger:not(&--text) {
+        background-color: $danger-darken-2-color;
+    }
+
+    &--danger.enabled:not(&--text) {
+        background-color: $danger-color;
+
+        &:hover {
+            background-color: $danger-darken-color;
+        }
+
+        &:active {
+            transform: translate(0, 1px);
+            box-shadow: 0 0 1px 1px $white-color;
+        }
+    }
+
+    &--text {
+        background-color: transparent;
+        border: none;
+        color: $font-secondary-color;
+        padding: 0;
+        min-height: 30px;
+        min-width: 60px;
+    }
+
+    &--with-bg {
+        border: 1px solid $font-secondary-color;
+        border-radius: 4px;
+    }
+
+    &--small {
+        font-size: $font-size-small;
+    }
+
+    &--small:not(.button--text) {
+        min-height: 20px;
+        min-width: 60px;
+    }
+
+    &--normal {
+        font-size: $font-size-default;
+    }
+
+    &--normal:not(.button--text) {
+        min-height: 30px;
+        min-width: 140px;
+    }
+
+    &--large {
+        font-size: $font-size-large;
+    }
+
+    &--large:not(.button--text) {
+        min-height: 40px;
+        min-width: 180px;
+    }
+}

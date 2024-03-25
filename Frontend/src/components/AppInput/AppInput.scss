@@ -1,0 +1,16 @@
+.app-input {
+    padding: 5px;
+    box-sizing: border-box;
+    border-radius: 4px;
+    border: $app-border;
+    width: 100%;
+
+    &--invalid {
+        border: $app-border-invalid !important;
+    }
+
+    &:focus {
+        border: $app-border;
+        outline: none;
+    }
+}

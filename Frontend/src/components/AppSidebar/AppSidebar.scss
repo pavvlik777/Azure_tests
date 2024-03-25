@@ -1,0 +1,19 @@
+.app-sidebar {
+    display: flex;
+    padding: 10px;
+    min-width: 200px;
+    max-width: 200px;
+
+    & > &__menu {
+        align-self: flex-start;
+        background-color: $secondary-main-2-color;
+        box-shadow: 2px 2px 4px -1px rgb(0 0 0 / 20%), 4px 4px 5px 0px rgb(0 0 0 / 14%),
+            1px 1px 10px 0px rgb(0 0 0 / 12%);
+        display: flex;
+        flex-direction: column;
+        padding: 10px;
+        position: sticky;
+        top: 74px;
+        width: 200px;
+    }
+}

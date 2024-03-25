@@ -1,0 +1,23 @@
+.text-input {
+    padding: 5px;
+    background-color: $white-color;
+    border-radius: 4px;
+    border: $app-border-background;
+    min-width: 180px;
+    min-height: 30px;
+
+    &.invalid {
+        border: $app-border-invalid !important;
+    }
+
+    &:hover {
+        background-color: $white-smoke;
+    }
+
+    &:focus {
+        background-color: $white-smoke;
+        border: $app-border;
+        box-shadow: 0 0 2px rgba(28, 28, 28, 0.5);
+        outline: none;
+    }
+}

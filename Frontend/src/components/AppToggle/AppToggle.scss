@@ -1,0 +1,50 @@
+.app-toggle {
+    display: inline-block;
+    height: 32px;
+    max-height: 32px;
+    position: relative;
+    width: 72px;
+    max-width: 72px;
+
+    & > input {
+        display: none;
+    }
+
+    &__slider {
+        background-color: $red-color;
+        bottom: 0;
+        cursor: pointer;
+        left: 0;
+        position: absolute;
+        right: 0;
+        top: 0;
+        transition: 0.2s background-color ease-in-out;
+    }
+
+    &__slider::before {
+        background-color: $white-color;
+        bottom: 4px;
+        content: "";
+        height: 24px;
+        left: 4px;
+        position: absolute;
+        width: 24px;
+        transition: 0.2s transform ease-in-out;
+    }
+
+    & > input:checked + &__slider {
+        background-color: $green-color;
+    }
+
+    & > input:checked + &__slider::before {
+        transform: translateX(40px);
+    }
+
+    &__slider.round {
+        border-radius: 12px;
+    }
+
+    &__slider.round::before {
+        border-radius: 50%;
+    }
+}

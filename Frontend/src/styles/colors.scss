@@ -1,0 +1,53 @@
+$black-color: #000;
+$black-color-half-transparent: rgba(0, 0, 0, 0.5);
+$black-color-almost-transparent: rgba(0, 0, 0, 0.01);
+$white-color: #fff;
+$green-color: #44bd62;
+$white-smoke: #f4f4f4;
+$dark-green-color: #225f31;
+$light-gray-color: #e8e8e8;
+$gray-color: #dbdbdb;
+$nickel-color: #949494;
+$dark-gray-color: #4d4d4d;
+$blue-color: #2196f3;
+$light-blue-color: #e8f0fa;
+$amber-color: #ffc107;
+$tangerine-color: #ff9f1a;
+$red-color: #f44336;
+$brown-color: #a77031;
+
+$font-size-small: 13px;
+$font-size-default: 16px;
+$font-size-large: 18px;
+
+$font-weight-light: 300;
+$font-weight-normal: 400;
+$font-weight-medium: 600;
+$font-weight-bold: 700;
+
+$primary-color: #c0dfd9;
+$primary-darken-color: #aad4cc;
+$primary-darken-2-color: #5dad9e;
+$secondary-color: #bfc8b7;
+$secondary-darken-color: #a6b29a;
+$secondary-darken-2-color: #738263;
+$danger-color: #d32f2f;
+$danger-lighten-color: #ef5350;
+$danger-darken-color: #c62828;
+$danger-darken-2-color: #8a1c1c;
+$background-color: $light-gray-color;
+
+$font-primary-color: $black-color;
+$font-secondary-color: $dark-green-color;
+
+$error-main-color: #d0021b;
+$error-light-color: #f5a623;
+
+$app-border: 1px solid $font-primary-color;
+$app-border-bold: 3px solid $font-primary-color;
+$app-border-secondary: 1px solid $font-secondary-color;
+$app-border-background: 1px solid $nickel-color;
+$app-border-invalid: 2px solid $red-color;
+
+$modal-z-index: 1000;
+$popout-z-index: 1300;

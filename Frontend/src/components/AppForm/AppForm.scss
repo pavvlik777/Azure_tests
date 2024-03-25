@@ -1,0 +1,101 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  width: 600px;
+  padding: 7.5px 15px;
+  margin: auto;
+  background-color: $secondary-color;
+
+  &__header {
+    @at-root {
+      h1#{&},
+      h2#{&},
+      h3#{&},
+      h4#{&},
+      h5#{&},
+      h6#{&} {
+        text-align: center;
+        color: $font-primary-color;
+        padding-bottom: 0.3em;
+        border-bottom: 2px solid $font-primary-color;
+        margin: 7.5px;
+      }
+    }
+  }
+
+  & > fieldset {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    border: 0;
+    text-align: center;
+  }
+
+  & > fieldset > &__param:not(:first-child) {
+    margin-top: 15px;
+  }
+
+  &__param {
+      display: flex;
+      flex-direction: column;
+
+      &__row {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+
+        &.label {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-end;
+          flex: 1 0 200px;
+          max-width: 200px;
+          margin-right: 20px;
+        }
+
+        &.input {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          flex: 1 0 250px;
+
+          & > * {
+              width: 250px;
+          }
+        }
+    }
+  }
+
+  &__error-text {
+    margin-top: 5px;
+    color: $error-main-color;
+  }
+
+  &__footer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: $font-primary-color;
+    padding-top: 1em;
+    border-top: 2px solid $font-primary-color;
+    margin: 7.5px;
+  }
+
+  &__messagelist {
+    margin: 5px 0;
+    padding: 0;
+    list-style-position: inside;
+
+    &__item {
+      text-align: start;
+
+      &.error {
+        color: $error-main-color;
+      }
+
+      &.success {
+        color: $green-color;
+      }
+    }
+  }
+}

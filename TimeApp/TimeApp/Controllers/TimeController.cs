@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -21,38 +20,6 @@ namespace TimeApp.Controllers
         }
 
 
-        //static TimeController()
-        //{
-        //    Timezones = new List<TimeData>()
-        //    {
-        //        new ()
-        //        {
-        //            ZoneId = "minsk",
-        //            DisplayName = "Minsk",
-        //            UtcOffsetMinutes = 3 * 60,
-        //        },
-        //        new ()
-        //        {
-        //            ZoneId = "new_york",
-        //            DisplayName = "New York",
-        //            UtcOffsetMinutes = -5 * 60,
-        //        },
-        //        new ()
-        //        {
-        //            ZoneId = "warsaw",
-        //            DisplayName = "Warsaw",
-        //            UtcOffsetMinutes = 1 * 60,
-        //        },
-        //        new ()
-        //        {
-        //            ZoneId = "novosibirsk",
-        //            DisplayName = "Novosibirsk",
-        //            UtcOffsetMinutes = 7 * 60,
-        //        },
-        //    };
-        //}
-
-
         [HttpGet]
         public async Task<ActionResult<IReadOnlyCollection<TimeData>>> Get()
         {
@@ -61,41 +28,52 @@ namespace TimeApp.Controllers
             return Ok(timezones);
         }
 
-        [HttpPost]
-        public ActionResult<TimeData> Post([FromBody] TimeDataRequest timeData)
+        [HttpGet("{id}")]
+        public async Task<ActionResult<TimeData>> Get(string id)
         {
-            //TODO
-
-            var temp = new TimeData
+            var timeData = await _timeDataRepository.GetByIdAsync(id);
+            if (timeData == null)
             {
-                ZoneId = "abc",
-                DisplayName = timeData.DisplayName,
-                UtcOffsetMinutes = timeData.UtcOffsetMinutes,
-            };
+                return NotFound();
+            }
 
-            return Ok(temp);
+            return Ok(timeData);
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<TimeData>> Post([FromBody] CreateTimeDataRequest request)
+        {
+            var timeData = CreateFrom(request);
+            var result = await _timeDataRepository.AddAsync(timeData, request.Ttl);
+
+            return Ok(result);
         }
 
         [HttpPut("{id}")]
-        public ActionResult<TimeData> Put(string id, [FromBody] TimeDataRequest timeData)
+        public async Task<ActionResult<TimeData>> Put(string id, [FromBody] UpdateTimeDataRequest request)
         {
-            //TODO
+            var timeData = await _timeDataRepository.GetByIdAsync(id);
+            if (timeData == null)
+            {
+                return NotFound();
+            }
 
-            return Ok();
+            var toTimeData = CreateFrom(request);
+            var result = await _timeDataRepository.UpdateAsync(timeData, toTimeData);
+
+            return Ok(result);
         }
 
         [HttpDelete("{id}")]
-        public ActionResult<TimeData> Delete(string id)
+        public async Task<ActionResult<TimeData>> Delete(string id)
         {
-            //TODO
+            var timeData = await _timeDataRepository.GetByIdAsync(id);
+            if (timeData == null)
+            {
+                return NotFound();
+            }
 
-            return Ok();
-        }
-
-        [HttpPost("{id}/ttl")]
-        public IActionResult SetTtl(string id)
-        {
-            //TODO
+            await _timeDataRepository.DeleteAsync(id);
 
             return Ok();
         }
@@ -103,21 +81,20 @@ namespace TimeApp.Controllers
         [HttpPost("diff/{first}/{second}")]
         public async Task<ActionResult<int>> Diff(string first, string second)
         {
-            var timezones = await _timeDataRepository.GetAllAsync();
-            var firstTimeZone = timezones.SingleOrDefault(z => z.ZoneId == first);
+            var firstTimeZone = await _timeDataRepository.GetByIdAsync(first);
             if (firstTimeZone == null)
             {
                 return BadRequest();
             }
 
-            var secondTimeZone = timezones.SingleOrDefault(z => z.ZoneId == second);
+            var secondTimeZone = await _timeDataRepository.GetByIdAsync(second);
             if (secondTimeZone == null)
             {
                 return BadRequest();
             }
 
             var client = new HttpClient();
-            var request = new HttpRequestMessage(HttpMethod.Get, $"https://time-diff-test.azurewebsites.net/api/timeDiff?first={firstTimeZone.UtcOffsetMinutes}&second={secondTimeZone.UtcOffsetMinutes}");
+            var request = new HttpRequestMessage(HttpMethod.Get, $"http://localhost:7223/api/TimeDiff?first={firstTimeZone.UtcOffsetMinutes}&second={secondTimeZone.UtcOffsetMinutes}");
             var response = await client.SendAsync(request);
             if (!response.IsSuccessStatusCode)
             {
@@ -130,8 +107,35 @@ namespace TimeApp.Controllers
         }
 
 
+        private static TimeData CreateFrom(CreateTimeDataRequest request)
+        {
+            return new TimeData
+            {
+                DisplayName = request.DisplayName,
+                UtcOffsetMinutes = request.UtcOffsetMinutes
+            };
+        }
 
-        public sealed class TimeDataRequest
+        private static TimeData CreateFrom(UpdateTimeDataRequest request)
+        {
+            return new TimeData
+            {
+                DisplayName = request.DisplayName,
+                UtcOffsetMinutes = request.UtcOffsetMinutes
+            };
+        }
+
+
+        public sealed class CreateTimeDataRequest
+        {
+            public string DisplayName { get; set; }
+
+            public int UtcOffsetMinutes { get; set; }
+
+            public bool Ttl { get; set; }
+        }
+
+        public sealed class UpdateTimeDataRequest
         {
             public string DisplayName { get; set; }
 
