@@ -99,7 +99,7 @@ namespace TimeApp.Controllers
             }
 
             var client = new HttpClient();
-            var request = new HttpRequestMessage(HttpMethod.Get, $"http://localhost:7223/api/TimeDiff?first={firstTimeZone.UtcOffsetMinutes}&second={secondTimeZone.UtcOffsetMinutes}");
+            var request = new HttpRequestMessage(HttpMethod.Get, $"https://time-diff-test.azurewebsites.net/api/TimeDiff?first={firstTimeZone.UtcOffsetMinutes}&second={secondTimeZone.UtcOffsetMinutes}");
             var response = await client.SendAsync(request);
             if (!response.IsSuccessStatusCode)
             {
