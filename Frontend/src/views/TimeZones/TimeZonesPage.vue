@@ -7,8 +7,8 @@
             </div>
             <div class="time-zones-container">
                 <TimeZone v-for="timeZone in this.timeZones" :key="timeZone.zoneId" :time-zone="timeZone"
-                    @time-zone:update-image="this.onTimeZoneImageUpdate" @time-zone:delete="this.onTimeZoneDelete"
-                    @time-zone:calculate-diff="this.onCalculateDiff" />
+                    @timeZone:updateImage="this.onTimeZoneImageUpdate" @timeZone:delete="this.onTimeZoneDelete"
+                    @timeZone:deleted="this.onTimeZoneDeleted" @timeZone:calculateDiff="this.onCalculateDiff" />
             </div>
             <AppButton @buttonClick="onAddNewTimeZoneClick">
                 Add new time zone
@@ -66,7 +66,21 @@ export default {
             }
         },
         async onTimeZoneDelete(zoneId) {
-            await timeZonesService.deleteTimezoneAsync(zoneId);
+            try {
+                await timeZonesService.deleteTimezoneAsync(zoneId);
+            } catch (r) {
+                if (r.status === 404) {
+                    if (r.data.errorText) {
+                        console.log(r.data.errorText);
+                    } else {
+                        console.log('Already deleted');
+                    }
+                }
+            }
+
+            this.onTimeZoneDeleted(zoneId);
+        },
+        onTimeZoneDeleted(zoneId) {
             const timeZoneToRemove = this.timeZones.find(z => z.zoneId === zoneId);
             const index = this.timeZones.indexOf(timeZoneToRemove);
             if (index > -1) {

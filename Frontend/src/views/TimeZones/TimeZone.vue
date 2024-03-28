@@ -68,6 +68,7 @@ export default {
             isDeleting: false,
         }
     },
+    emits: ['timeZone:delete', 'timeZone:deleted', 'timeZone:calculateDiff', 'timeZone:updateImage'],
     beforeUnmount() {
         clearInterval(this.currentTimeInterval)
     },
@@ -104,21 +105,33 @@ export default {
         },
         onDeleteClick() {
             this.isDeleting = true;
-            this.$emit("time-zone:delete", this.timeZone.zoneId);
+            this.$emit("timeZone:delete", this.timeZone.zoneId);
         },
         async onTimeZoneDiffClick() {
             const response = await timeZonesService.calculateTimeZonesDiffAsync(this.timeZone.zoneId, 'minsk');
             const result = response.data;
 
-            this.$emit("time-zone:calculate-diff", result);
+            this.$emit("timeZone:calculateDiff", result);
         },
         async onLoadPicture({ data }) {
             if (data) {
                 this.isImageLoading = true;
-                const response = await timeZonesService.updateImageAsync(this.timeZone.zoneId, data);
-                const result = response.data;
+                try {
+                    const response = await timeZonesService.updateImageAsync(this.timeZone.zoneId, data);
+                    const result = response.data;
 
-                this.$emit("time-zone:update-image", this.timeZone.zoneId, result);
+                    this.$emit("timeZone:updateImage", this.timeZone.zoneId, result);
+                } catch (r) {
+                    if (r.status === 404) {
+                        if (r.data.errorText) {
+                            console.log(r.data.errorText);
+                        } else {
+                            console.log('Already deleted');
+                        }
+                    }
+
+                    this.$emit("timeZone:deleted", this.timeZone.zoneId);
+                }
                 this.isImageLoading = false;
             }
         },

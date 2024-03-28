@@ -41,6 +41,7 @@ export default {
       required: true,
     }
   },
+  emits: ['form:click'],
   methods: {
     onSubmitClick() {
       if (!this.disabled) {

@@ -65,6 +65,7 @@ export default {
       uploadFileName: "",
     };
   },
+  emits: ['interface', 'dropbox:load', 'dropbox:clear'],
   computed: {
     supportedFormats() {
       return this.formats && this.formats.length ? this.formats.join(",") : "";

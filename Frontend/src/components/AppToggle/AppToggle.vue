@@ -18,6 +18,7 @@ export default {
       default: false,
     },
   },
+  emits: ['change'],
   methods: {
     onInput(event) {
       this.$emit("update:modelValue", event.target.checked);

@@ -26,9 +26,10 @@ export default {
     },
     htmlClasses: {
       type: Object,
-      default: () => {},
+      default: () => { },
     },
   },
+  emits: ['buttonClick'],
   computed: {
     isDisabled() {
       return this.disabled;
